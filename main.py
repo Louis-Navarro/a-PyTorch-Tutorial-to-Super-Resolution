@@ -55,17 +55,17 @@ def get_args():
     parser = argparse.ArgumentParser(
         description='A neural network to upscale images and video by 2 or 4')
     parser.add_argument('--model', '-m', required=True,
-                        help='Relative or absolute path to the model')
+                        help='Relative or as_posix path to the model')
     parser.add_argument(
         '--output', '-o', help='Name of the file or folder to output the output', type=pathlib.Path)
     parser.add_argument(
-        '--image', '-i', help='Relative or absolute path to the image to upscale', type=pathlib.Path)
+        '--image', '-i', help='Relative or as_posix path to the image to upscale', type=pathlib.Path)
     parser.add_argument(
-        '--video', '-v', help='Relative or absolute path to the video to upscale', type=pathlib.Path)
+        '--video', '-v', help='Relative or as_posix path to the video to upscale', type=pathlib.Path)
     parser.add_argument(
         '--batch', '-b', help='Number of images from the video to compute at the same time', type=int, default=8)
     parser.add_argument(
-        '--folder', '-f', help='Relative or absolute path to a folder of images to upscale')
+        '--folder', '-f', help='Relative or as_posix path to a folder of images to upscale')
     parser.add_argument(
         '--scale', '-s', help='Factor of upscaling', type=int, choices=[2, 4], required=True)
     parser.add_argument(
@@ -88,7 +88,7 @@ def main(args):
 
     with torch.no_grad():
         if args.image:
-            img = imread(args.image.absolute()).copy()
+            img = imread(args.image.as_posix()).copy()
 
             out = model(convert_image(img, source='pil',
                         target='imagenet-norm').unsqueeze(0).to(device))
@@ -96,7 +96,7 @@ def main(args):
             out = convert_image(out, source='[-1, 1]', target='pil')
             out = np.array(out)
 
-            file_name = args.output.absolute()
+            file_name = args.output.as_posix()
             if not args.output.is_file():
                 file_name = os.path.join(
                     file_name, args.image.name)
@@ -107,8 +107,8 @@ def main(args):
 
         elif args.folder:
             assert not args.output.is_file()
-            for fp in os.listdir(args.folder.absolute()):
-                img = imread(os.path.join(args.folder.absolute(), fp)).copy()
+            for fp in os.listdir(args.folder.as_posix()):
+                img = imread(os.path.join(args.folder.as_posix(), fp)).copy()
 
                 out = model(convert_image(img, source='pil',
                             target='imagenet-norm').unsqueeze(0).to(device))
@@ -116,18 +116,18 @@ def main(args):
                 out = convert_image(out, source='[-1, 1]', target='pil')
                 out = np.array(out)
 
-                file_name = os.path.join(args.output.absolute(), fp)
+                file_name = os.path.join(args.output.as_posix(), fp)
                 if args.scale == 2:
                     out = rescale(out, 0.5)
                 imsave(file_name, out)
 
         else:  # Video
-            file_name = args.output.absolute()
+            file_name = args.output.as_posix()
             if not args.output.is_file():
                 file_name = os.path.join(
                     file_name, args.video.name)
 
-            with FFmpegWriter(file_name) as out_file, BatchedVideoReader(args.batch, args.video.absolute()) as imgs:
+            with FFmpegWriter(file_name) as out_file, BatchedVideoReader(args.batch, args.video.as_posix()) as imgs:
                 for img in tqdm(imgs):
                     img = img.to(device)
 
