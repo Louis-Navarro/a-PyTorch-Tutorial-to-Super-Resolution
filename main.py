@@ -48,7 +48,7 @@ class BatchedVideoReader(FFmpegReader):
 
         for im in self.nextFrame():
             img = convert_image(im.copy(), 'pil', 'imagenet-norm')
-            yield img
+            yield img.unsqueeze(0)
 
 
 def get_args():
