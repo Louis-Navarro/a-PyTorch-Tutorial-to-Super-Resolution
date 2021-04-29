@@ -83,12 +83,12 @@ def main(args):
     device = torch.device('cuda' if torch.cuda.is_available()
                           and not args.cpu else 'cpu')
 
-    model = torch.load(args.model)['generator'].to(device)
+    model = torch.load(args.model, map_location=device)['generator'].to(device)
     model.eval()
 
     with torch.no_grad():
         if args.image:
-            img = imread(args.image.as_uri).copy()
+            img = imread(args.image.absolute()).copy()
 
             out = model(convert_image(img, source='pil',
                         target='imagenet-norm').unsqueeze(0).to(device))
@@ -96,8 +96,8 @@ def main(args):
             out = convert_image(out, source='[-1, 1]', target='pil')
             out = np.array(out)
 
-            file_name = args.output.as_uri
-            if not args.output.is_file:
+            file_name = args.output.absolute()
+            if not args.output.is_file():
                 file_name = os.path.join(
                     file_name, args.image.name)
             if args.scale == 2:
@@ -106,9 +106,9 @@ def main(args):
             imsave(file_name, out)
 
         elif args.folder:
-            assert not args.output.is_file
-            for fp in os.listdir(args.folder.as_uri):
-                img = imread(os.path.join(args.folder.as_uri, fp)).copy()
+            assert not args.output.is_file()
+            for fp in os.listdir(args.folder.absolute()):
+                img = imread(os.path.join(args.folder.absolute(), fp)).copy()
 
                 out = model(convert_image(img, source='pil',
                             target='imagenet-norm').unsqueeze(0).to(device))
@@ -116,18 +116,18 @@ def main(args):
                 out = convert_image(out, source='[-1, 1]', target='pil')
                 out = np.array(out)
 
-                file_name = os.path.join(args.output.as_uri, fp)
+                file_name = os.path.join(args.output.absolute(), fp)
                 if args.scale == 2:
                     out = rescale(out, 0.5)
                 imsave(file_name, out)
 
         else:  # Video
-            file_name = args.output.as_uri
-            if not args.output.is_file:
+            file_name = args.output.absolute()
+            if not args.output.is_file():
                 file_name = os.path.join(
                     file_name, args.video.name)
 
-            with FFmpegWriter(file_name) as out_file, BatchedVideoReader(args.batch, args.video.as_uri) as imgs:
+            with FFmpegWriter(file_name) as out_file, BatchedVideoReader(args.batch, args.video.absolute()) as imgs:
                 for img in tqdm(imgs):
                     img = img.to(device)
 
