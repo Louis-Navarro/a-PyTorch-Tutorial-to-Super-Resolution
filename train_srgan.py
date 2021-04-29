@@ -97,7 +97,7 @@ def get_args():
     learn_params.add_argument(
         '--beta', help='coefficient to weight the adversarial loss in the perceptual loss', type=float, default=1e-3)
     learn_params.add_argument(
-        '--print', '--freq', help='Print training status every __ batches', type=int, default=500)
+        '--freq', '--print', help='Print training status every __ batches', type=int, default=500)
     learn_params.add_argument(
         '--lr', help='Learning rate', type=float, default=1e-4)
 
@@ -321,7 +321,7 @@ def train(train_loader, generator, discriminator, truncated_vgg19, content_loss_
         start = time.time()
 
         # Print status
-        if i % args.print_freq == 0:
+        if i % args.freq == 0:
             print('Epoch: [{0}][{1}/{2}]----'
                   'Batch Time {batch_time.val:.3f} ({batch_time.avg:.3f})----'
                   'Data Time {data_time.val:.3f} ({data_time.avg:.3f})----'
