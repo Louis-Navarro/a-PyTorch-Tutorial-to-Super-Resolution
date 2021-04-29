@@ -131,12 +131,13 @@ def main(args):
                 for img in tqdm(imgs):
                     img = img.to(device)
 
-                    img = model(img).squeeze(0).cpu().detach()
-                    img = convert_image(img, source='[-1, 1]', target='pil')
-                    img = np.array(img)
-                    if args.scale == 2:
-                        out = rescale(out, 0.5)
-                    out_file.writeFrame(img)
+                    img = model(img).cpu().detach()
+                    for im in img:
+                        im = convert_image(im, source='[-1, 1]', target='pil')
+                        im = np.array(img)
+                        if args.scale == 2:
+                            im = rescale(im, 0.5)
+                        out_file.writeFrame(im)
 
 
 if __name__ == '__main__':
